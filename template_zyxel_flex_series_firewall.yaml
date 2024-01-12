@@ -1,0 +1,331 @@
+zabbix_export:
+  version: '6.4'
+  template_groups:
+    - uuid: 36bff6c29af64692839d077febfc7079
+      name: 'Templates/Network devices'
+  templates:
+    - uuid: e2be602e111b4295a34de1f45c06b967
+      template: 'Zyxel Firewall FLEX Series by Alen'
+      name: 'Zyxel Firewall FLEX Series by Alen'
+      description: |
+        Evaluierte Modelle:
+        
+        - Zyxel USG 60
+        - Zyxel FLEX 100 (Temp Sensoren funktionieren nicht, deaktivieren)
+        - Zyxel FLEX 200
+      groups:
+        - name: 'Templates/Network devices'
+      items:
+        - uuid: d010d46f877f4e1caf03957453f11d39
+          name: 'zyFLEX : ActiveSession usage'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.890.1.6.22.1.6.0
+          key: zyflex.activesessionusage
+          description: 'Anzahl aktiver Sessions in der ZyWALL'
+          tags:
+            - tag: zyFLEX
+              value: usage
+          triggers:
+            - uuid: 953bfb7c65fe4f129fcef10e0dcd0511
+              expression: 'last(/Zyxel Firewall FLEX Series by Alen/zyflex.activesessionusage)>10000'
+              name: 'High Active Sessions'
+              priority: HIGH
+              description: 'Warnung bei überschreitung von 10.000 Sessions'
+        - uuid: 5037730fdc7447e0b81f4e87e3f24a3b
+          name: 'zyFLEX : CPU temperature'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#UBSOFTWARE},.1.3.6.1.4.1.890.1.15.3.26.1.2.1.3]'
+          key: zyflex.cputemp
+          value_type: FLOAT
+          units: C
+          description: 'CPU Temperatur in Celsius'
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  // Quellzeichenfolge in JSON-Objekt umwandeln
+                   val_json=JSON.parse(value);
+                   //Nur benötigte Teile in Array extrahieren
+                   val_array=[];
+                   val_array.push(val_json[0]["{#UBSOFTWARE}"]);
+                   //Array als String mit NL als Trennzeichen zurückgeben
+                   return val_array.join('\n'); 
+          tags:
+            - tag: zyFLEX
+              value: temperature
+        - uuid: cc49c897c95247828505e0b3496efa1f
+          name: 'zyFLEX : CPU usage'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#UBSOFTWARE},.1.3.6.1.4.1.890.1.6.22.1.1]'
+          key: zyflex.cpuutalization
+          units: '%'
+          description: 'Die CPU Auslastung in %'
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  // Quellzeichenfolge in JSON-Objekt umwandeln
+                  val_json=JSON.parse(value);
+                  //Nur benötigte Teile in Array extrahieren
+                  val_array=[];
+                  val_array.push(val_json[0]["{#UBSOFTWARE}"]);
+                  //Array als String mit NL als Trennzeichen zurückgeben
+                  return val_array.join('\n');
+          tags:
+            - tag: zyFLEX
+              value: usage
+          triggers:
+            - uuid: c41fef0976394917bba8abf4266ddff1
+              expression: 'last(/Zyxel Firewall FLEX Series by Alen/zyflex.cpuutalization)>85'
+              name: 'High CPU'
+              priority: HIGH
+              description: 'Wenn über 85% die Temperatur steigt'
+        - uuid: 93175ba67ef742679988be9c36ac004b
+          name: 'zyFLEX : DHCP table'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#UBSOFTWARE},.1.3.6.1.2.1.4.22.1.3]'
+          key: zyflex.dhcptable
+          delay: 30m
+          history: 1d
+          trends: '0'
+          value_type: TEXT
+          description: 'Auslesung der DHCP Tabelle'
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  // Quellzeichenfolge in JSON-Objekt umwandeln
+                   val_json=JSON.parse(value);
+                   //Nur benötigte Teile in Array extrahieren
+                   val_array=[];
+                   for (i in val_json) {
+                     val_array.push(val_json[i]["{#UBSOFTWARE}"]);
+                   }
+                   //Array als String mit NL als Trennzeichen zurückgeben
+                   return val_array.join('\n'); 
+          tags:
+            - tag: zyFLEX
+              value: system
+        - uuid: 111b409defaa450c8cf9ae481039d084
+          name: 'zyFLEX : FAN IC temperature'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#UBSOFTWARE},.1.3.6.1.4.1.890.1.15.3.26.1.2.1.3]'
+          key: zyflex.fanictemp
+          value_type: FLOAT
+          units: C
+          description: 'Lüfter Temperatur in Celsius'
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  // Quellzeichenfolge in JSON-Objekt umwandeln
+                   val_json=JSON.parse(value);
+                   //Nur benötigte Teile in Array extrahieren
+                   val_array=[];
+                   val_array.push(val_json[1]["{#UBSOFTWARE}"]);
+                   //Array als String mit NL als Trennzeichen zurückgeben
+                   return val_array.join('\n'); 
+          tags:
+            - tag: zyFLEX
+              value: temperature
+        - uuid: 88265ceab4e74f97bad83dca5fae453e
+          name: 'zyFLEX : FLASH usage'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#UBSOFTWARE},.1.3.6.1.4.1.890.1.6.22.1.7]'
+          key: zyflex.flashusage
+          units: '%'
+          description: 'Die Speicher Auslastung in %'
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  // Quellzeichenfolge in JSON-Objekt umwandeln
+                  val_json=JSON.parse(value);
+                  //Nur benötigte Teile in Array extrahieren
+                  val_array=[];
+                  val_array.push(val_json[0]["{#UBSOFTWARE}"]);
+                  //Array als String mit NL als Trennzeichen zurückgeben
+                  return val_array.join('\n');
+          tags:
+            - tag: zyFLEX
+              value: usage
+        - uuid: c22c310dc4e942cbbc31b958998d837b
+          name: 'zyFLEX : RAM usage'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#UBSOFTWARE},.1.3.6.1.4.1.890.1.6.22.1.2]'
+          key: zyflex.ramutalization
+          units: '%'
+          description: 'Die RAM Auslastung in %'
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  // Quellzeichenfolge in JSON-Objekt umwandeln
+                  val_json=JSON.parse(value);
+                  //Nur benötigte Teile in Array extrahieren
+                  val_array=[];
+                  val_array.push(val_json[0]["{#UBSOFTWARE}"]);
+                  //Array als String mit NL als Trennzeichen zurückgeben
+                  return val_array.join('\n');
+          tags:
+            - tag: zyFLEX
+              value: usage
+        - uuid: 28a88bdd955c401290060044ae47bf9a
+          name: 'zyFLEX : hardware serial number'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.890.1.15.3.1.12.0
+          key: zyflex.serialnumber
+          delay: 30m
+          trends: '0'
+          value_type: CHAR
+          description: 'Die Hardware Seriennummer'
+          tags:
+            - tag: zyFLEX
+              value: system
+        - uuid: 0114799ccd81418eb6d3fc2db60e20f5
+          name: 'zyFLEX : system version'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#UBSOFTWARE},.1.3.6.1.4.1.890.1.15.3.1.6]'
+          key: zyflex.systemversion
+          trends: '0'
+          value_type: CHAR
+          description: 'Die Running Firmware'
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  // Quellzeichenfolge in JSON-Objekt umwandeln
+                   val_json=JSON.parse(value);
+                   //Nur benötigte Teile in Array extrahieren
+                   val_array=[];
+                   for (i in val_json) {
+                     val_array.push(val_json[i]["{#UBSOFTWARE}"]);
+                   }
+                   //Array als String mit NL als Trennzeichen zurückgeben
+                   return val_array.join('\n'); 
+          tags:
+            - tag: zyFLEX
+              value: system
+        - uuid: 2be24d761c3942d0adc8aa39e5935515
+          name: 'zyFLEX : vpn connected user'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.890.1.6.22.2.5.3.0
+          key: zyflex.vpnConnectionConnected
+          description: 'Number of connected VPN connection.'
+          tags:
+            - tag: zyFLEX
+              value: vpn
+      discovery_rules:
+        - uuid: f00366e1cbac435e97c8a1b93509f6c3
+          name: 'vpn discovery'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#VPN.CONNAME},1.3.6.1.4.1.890.1.6.22.2.4.1.2,{#VPN.ENABLE},1.3.6.1.4.1.890.1.6.22.2.4.1.5]'
+          key: vpn.discovery
+          filter:
+            conditions:
+              - macro: '{#VPN.CONNAME}'
+                value: '{$VPN.DISCOVER}'
+                formulaid: A
+              - macro: '{#VPN.ENABLE}'
+                value: '{$VPN.DISCOVER}'
+                formulaid: B
+          description: 'VPN Monitoring'
+          item_prototypes:
+            - uuid: 919e741b70fc442892ef32a7573103b4
+              name: 'zyFLEX : {#SNMPINDEX} vpn:: connection name'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.890.1.6.22.2.4.1.2.{#SNMPINDEX}'
+              key: 'vpn.discovery[VPN.CONNAME.{#SNMPINDEX}]'
+              trends: '0'
+              value_type: TEXT
+              description: 'The name of VPN connection.'
+              tags:
+                - tag: zyFLEX
+                  value: vpn
+            - uuid: d6ec9a223a234766a4eb990d2775b2cb
+              name: 'zyFLEX :  {#SNMPINDEX} vpn: {#VPN.CONNAME} connected status'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.890.1.6.22.2.4.1.6.{#SNMPINDEX}'
+              key: 'vpn.discovery[VPN.CONNECTED.{#SNMPINDEX}]'
+              trends: '0'
+              value_type: TEXT
+              description: |
+                Connection status of VPN connection.
+                INTEGER {disconnected(0),connected(1)}
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var ausgabe;
+                      if (value == 1){ausgabe = "CONNECTED";}
+                      else {ausgabe = "OFFLINE";}
+                      return ausgabe;
+              tags:
+                - tag: zyFLEX
+                  value: vpn
+            - uuid: 7e9f6e6ca74b41f9b377193a35cce461
+              name: 'zyFLEX : {#SNMPINDEX} vpn: {#VPN.CONNAME} enable status'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.890.1.6.22.2.4.1.5.{#SNMPINDEX}'
+              key: 'vpn.discovery[VPN.ENABLE.{#SNMPINDEX}]'
+              trends: '0'
+              value_type: TEXT
+              description: 'Activation status of VPN connection.'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var ausgabe;
+                      if (value == 1){ausgabe = "ENABLED";}
+                      else {ausgabe = "DISABLED";}
+                      return ausgabe;
+              tags:
+                - tag: zyFLEX
+                  value: vpn
+            - uuid: 0a80f7bbb56342f189f0da7666c20cbe
+              name: 'zyFLEX : {#SNMPINDEX} vpn: {#VPN.CONNAME} gateway name'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.890.1.6.22.2.4.1.3.{#SNMPINDEX}'
+              key: 'vpn.discovery[VPN.GW.{#SNMPINDEX}]'
+              trends: '0'
+              value_type: TEXT
+              description: 'The name of VPN gateway.'
+              tags:
+                - tag: zyFLEX
+                  value: vpn
+      macros:
+        - macro: '{$VPN.CONNAME}'
+          value: '.*'
+        - macro: '{$VPN.DISCOVER}'
+          value: '^.*$'
+  graphs:
+    - uuid: fd180ed8ecfe4894a985c6f17cc2763d
+      name: 'Active Session Usage'
+      show_work_period: 'NO'
+      show_triggers: 'NO'
+      graph_items:
+        - drawtype: GRADIENT_LINE
+          color: FF0000
+          item:
+            host: 'Zyxel Firewall FLEX Series by Alen'
+            key: zyflex.activesessionusage
+    - uuid: e3e65fc02d2a47e2a5b5c569700712d6
+      name: 'Hardware Monitoring'
+      graph_items:
+        - drawtype: FILLED_REGION
+          color: 00FF00
+          item:
+            host: 'Zyxel Firewall FLEX Series by Alen'
+            key: zyflex.cpuutalization
+        - sortorder: '1'
+          drawtype: BOLD_LINE
+          color: '000000'
+          item:
+            host: 'Zyxel Firewall FLEX Series by Alen'
+            key: zyflex.flashusage
+        - sortorder: '2'
+          drawtype: GRADIENT_LINE
+          color: 00BFFF
+          item:
+            host: 'Zyxel Firewall FLEX Series by Alen'
+            key: zyflex.ramutalization
